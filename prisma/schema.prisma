@@ -1,0 +1,154 @@
+// Prisma schema for 現場管理システム (Kaminashi代替)
+// 開発中は sqlite でも動作確認できますが、Vercelにデプロイする際は
+// datasource を postgresql に変更し、DATABASE_URL に
+// Vercel Postgres / Neon などの接続文字列を設定してください。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------
+// 店舗マスタ：各店舗に一意のID（storeCode）を発行
+// ---------------------------------------------
+model Store {
+  id        String   @id @default(cuid())
+  storeCode String   @unique // 店舗ログイン用ID（例: BTK-001）
+  name      String   // 表示名（例: BUTAKIN六本木）
+  pinHash   String?  // 店舗共通PIN（簡易ログイン用、任意）
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  equipments             Equipment[]
+  temperatureLogs        TemperatureLog[]
+  temperatureSubmissions TemperatureSubmission[]
+  complaints             Complaint[]
+  documents              Document[]
+}
+
+// ---------------------------------------------
+// 設備マスタ：冷蔵庫・冷凍庫など温度チェック対象
+// ---------------------------------------------
+model Equipment {
+  id       String  @id @default(cuid())
+  storeId  String
+  store    Store   @relation(fields: [storeId], references: [id])
+  name     String  // 例: 冷凍庫A
+  minTemp  Float
+  maxTemp  Float
+  sortOrder Int    @default(0)
+  active   Boolean @default(true)
+
+  temperatureLogs TemperatureLog[]
+
+  @@index([storeId])
+}
+
+enum Period {
+  AM
+  PM
+}
+
+// ---------------------------------------------
+// 温度記録：朝・夜の手入力ログ（設備ごとの数値）
+// 店舗側はこの数値の入力・訂正のみ行う（設備マスタの追加/削除は事務所側）
+// ---------------------------------------------
+model TemperatureLog {
+  id          String   @id @default(cuid())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id])
+  logDate     DateTime // その日の日付（時刻は00:00に正規化）
+  period      Period   // AM or PM
+  value       Float    // 記録温度
+  isAbnormal  Boolean  @default(false) // min/maxを外れていたか
+  note        String?
+  staffName   String   // 入力者（店舗スタッフ or 事務所代筆者）
+  editedByAdmin Boolean @default(false) // 事務所側が代筆/訂正したか
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([storeId, logDate])
+  @@unique([equipmentId, logDate, period]) // 同じ設備・同じ日・同じ時間帯は1件のみ
+}
+
+// ---------------------------------------------
+// 提出確定：店舗が「提出」ボタンを押した記録
+// 事務所ダッシュボードの○×表示はこのレコードの有無で判定する
+// ---------------------------------------------
+model TemperatureSubmission {
+  id           String   @id @default(cuid())
+  storeId      String
+  store        Store    @relation(fields: [storeId], references: [id])
+  logDate      DateTime // 00:00に正規化した日付
+  period       Period
+  submittedBy  String   // スタッフ名（事務所が代筆した場合は担当者名＋"（事務所代筆）"）
+  submittedByAdmin Boolean @default(false)
+  submittedAt  DateTime @default(now())
+
+  @@unique([storeId, logDate, period])
+  @@index([storeId, logDate])
+}
+
+enum ComplaintStatus {
+  NEW
+  IN_PROGRESS
+  DONE
+}
+
+// ---------------------------------------------
+// クレーム報告（店舗→本部）
+// ---------------------------------------------
+model Complaint {
+  id             String          @id @default(cuid())
+  storeId        String
+  store          Store           @relation(fields: [storeId], references: [id])
+  title          String
+  detail         String
+  photoUrl       String?
+  status         ComplaintStatus @default(NEW)
+  staffName      String
+  createdByAdmin Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([storeId])
+}
+
+enum DocumentStatus {
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// ---------------------------------------------
+// 従業員の書類提出
+// ---------------------------------------------
+model Document {
+  id         String         @id @default(cuid())
+  storeId    String
+  store      Store          @relation(fields: [storeId], references: [id])
+  staffName  String
+  docType    String         // 例: 健康診断書 / 誓約書 など
+  fileUrl    String
+  fileName   String
+  status     DocumentStatus @default(SUBMITTED)
+  note       String?
+  createdAt  DateTime       @default(now())
+
+  @@index([storeId])
+}
+
+// ---------------------------------------------
+// 本部管理者アカウント（簡易）
+// ---------------------------------------------
+model AdminUser {
+  id           String @id @default(cuid())
+  name         String
+  passwordHash String
+}
