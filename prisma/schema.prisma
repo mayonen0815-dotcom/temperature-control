@@ -151,12 +151,13 @@ model Document {
 // 重点管理記録：グループ・項目は設備と同様、事務所側が店舗ごとに管理する
 // ---------------------------------------------
 model ChecklistGroup {
-  id        String   @id @default(cuid())
-  storeId   String
-  store     Store    @relation(fields: [storeId], references: [id])
-  name      String   // 例：第1グループ：非加熱のもの
-  sortOrder Int      @default(0)
-  active    Boolean  @default(true)
+  id                String   @id @default(cuid())
+  storeId           String
+  store             Store    @relation(fields: [storeId], references: [id])
+  name              String   // 例：第1グループ：非加熱のもの
+  referencePhotoUrl String?  // 事務所側が添付する参考写真（店舗側にも表示される）
+  sortOrder         Int      @default(0)
+  active            Boolean  @default(true)
 
   items ChecklistItem[]
 
@@ -168,6 +169,7 @@ model ChecklistItem {
   groupId   String
   group     ChecklistGroup @relation(fields: [groupId], references: [id])
   name      String   // 例：非加熱のもの／加熱後に高温保存
+  guide     String?  // チェック方法（店舗側にヒントとして表示）
   sortOrder Int      @default(0)
   active    Boolean  @default(true)
 

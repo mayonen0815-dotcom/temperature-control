@@ -188,11 +188,18 @@ export default function StoreEquipmentPage() {
 
 function ChecklistManager({ storeId }: { storeId: string }) {
   const [groups, setGroups] = useState<
-    { id: string; name: string; items: { id: string; name: string }[] }[]
+    {
+      id: string;
+      name: string;
+      referencePhotoUrl: string | null;
+      items: { id: string; name: string; guide: string | null }[];
+    }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [newGroupName, setNewGroupName] = useState("");
   const [newItemName, setNewItemName] = useState<Record<string, string>>({});
+  const [newItemGuide, setNewItemGuide] = useState<Record<string, string>>({});
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -237,11 +244,27 @@ function ChecklistManager({ storeId }: { storeId: string }) {
     const res = await fetch(`/api/admin/checklist-groups/${groupId}/items`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({ name, guide: newItemGuide[groupId] ?? "" }),
     });
     if (res.ok) {
       setNewItemName((prev) => ({ ...prev, [groupId]: "" }));
+      setNewItemGuide((prev) => ({ ...prev, [groupId]: "" }));
       await load();
+    }
+  }
+
+  async function uploadGroupPhoto(groupId: string, file: File) {
+    setUploadingPhoto(groupId);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      await fetch(`/api/admin/checklist-groups/${groupId}/photo`, {
+        method: "POST",
+        body: fd,
+      });
+      await load();
+    } finally {
+      setUploadingPhoto(null);
     }
   }
 
@@ -294,16 +317,56 @@ function ChecklistManager({ storeId }: { storeId: string }) {
                   グループを削除
                 </button>
               </div>
+
+              <div className="mb-3">
+                {g.referencePhotoUrl && (
+                  <a
+                    href={g.referencePhotoUrl}
+                    target="_blank"
+                    className="block mb-2"
+                  >
+                    <img
+                      src={g.referencePhotoUrl}
+                      alt="参考写真"
+                      className="w-full max-h-32 object-cover rounded-card border border-ink/10"
+                    />
+                  </a>
+                )}
+                <label className="block text-xs font-medium text-ink/60 mb-1">
+                  参考写真（店舗側にも表示されます）
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={uploadingPhoto === g.id}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) uploadGroupPhoto(g.id, file);
+                  }}
+                  className="text-sm"
+                />
+                {uploadingPhoto === g.id && (
+                  <p className="text-xs text-ink/40 mt-1">アップロード中...</p>
+                )}
+              </div>
+
               <div className="space-y-2 mb-3">
                 {g.items.map((it) => (
                   <div
                     key={it.id}
-                    className="flex items-center justify-between border border-ink/10 rounded-card px-3 py-2"
+                    className="flex items-start justify-between border border-ink/10 rounded-card px-3 py-2"
                   >
-                    <p className="text-sm text-ink">{it.name}</p>
+                    <div>
+                      <p className="text-sm text-ink font-medium">{it.name}</p>
+                      {it.guide && (
+                        <p className="text-xs text-ink/50 whitespace-pre-wrap mt-1">
+                          {it.guide}
+                        </p>
+                      )}
+                    </div>
                     <button
                       onClick={() => deleteItem(it.id)}
-                      className="text-warn text-xs hover:underline"
+                      className="text-warn text-xs hover:underline shrink-0 ml-2"
                     >
                       削除
                     </button>
@@ -313,18 +376,26 @@ function ChecklistManager({ storeId }: { storeId: string }) {
                   <p className="text-xs text-ink/40">項目がまだありません</p>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="space-y-2">
                 <input
-                  className="flex-1 rounded-card border border-ink/15 px-3 py-1.5 text-sm"
-                  placeholder="例：非加熱のもの"
+                  className="w-full rounded-card border border-ink/15 px-3 py-1.5 text-sm"
+                  placeholder="項目名　例：生卵"
                   value={newItemName[g.id] ?? ""}
                   onChange={(e) =>
                     setNewItemName((prev) => ({ ...prev, [g.id]: e.target.value }))
                   }
                 />
+                <textarea
+                  className="w-full rounded-card border border-ink/15 px-3 py-1.5 text-sm min-h-[60px]"
+                  placeholder="チェック方法（任意）　例：賞味期限の確認。常温で置く場合は状態を営業前・休憩中・営業後で確認する"
+                  value={newItemGuide[g.id] ?? ""}
+                  onChange={(e) =>
+                    setNewItemGuide((prev) => ({ ...prev, [g.id]: e.target.value }))
+                  }
+                />
                 <button
                   onClick={() => addItem(g.id)}
-                  className="rounded-card bg-ink/80 text-white text-sm font-semibold px-4"
+                  className="rounded-card bg-ink/80 text-white text-sm font-semibold px-4 py-1.5"
                 >
                   項目を追加
                 </button>

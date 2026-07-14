@@ -35,11 +35,13 @@ export async function GET(
   const result = groups.map((g) => ({
     id: g.id,
     name: g.name,
+    referencePhotoUrl: g.referencePhotoUrl,
     items: g.items.map((it) => {
       const a = answers.find((x) => x.itemId === it.id);
       return {
         id: it.id,
         name: it.name,
+        guide: it.guide,
         passed: a?.passed ?? null,
         photoUrl: a?.photoUrl ?? null,
         note: a?.note ?? "",

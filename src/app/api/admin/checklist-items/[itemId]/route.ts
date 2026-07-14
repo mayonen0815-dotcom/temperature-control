@@ -9,10 +9,11 @@ export async function PATCH(
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { name, active } = await req.json();
+  const { name, active, guide } = await req.json();
   const data: any = {};
   if (name !== undefined) data.name = name;
   if (active !== undefined) data.active = active;
+  if (guide !== undefined) data.guide = guide;
 
   const item = await prisma.checklistItem.update({ where: { id: params.itemId }, data });
   return NextResponse.json({ ok: true, item });

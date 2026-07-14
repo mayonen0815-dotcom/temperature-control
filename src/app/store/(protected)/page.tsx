@@ -14,12 +14,6 @@ const menu = [
     icon: "✅",
   },
   {
-    href: "/store/complaints",
-    label: "クレーム報告",
-    desc: "お客様対応の内容を報告",
-    icon: "📝",
-  },
-  {
     href: "/store/documents",
     label: "書類提出",
     desc: "健康診断書・誓約書などを提出",

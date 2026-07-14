@@ -7,7 +7,6 @@ const items = [
   { href: "/store", label: "メニュー", icon: "🏠" },
   { href: "/store/temperature", label: "温度記録", icon: "🌡️" },
   { href: "/store/checklist", label: "重点管理", icon: "✅" },
-  { href: "/store/complaints", label: "クレーム報告", icon: "📝" },
   { href: "/store/documents", label: "書類提出", icon: "📄" },
 ];
 

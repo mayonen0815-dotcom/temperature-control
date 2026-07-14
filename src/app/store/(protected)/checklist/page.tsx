@@ -5,11 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 type Item = {
   id: string;
   name: string;
+  guide: string | null;
   passed: boolean | null;
   photoUrl: string | null;
   note: string;
 };
-type Group = { id: string; name: string; items: Item[] };
+type Group = { id: string; name: string; referencePhotoUrl: string | null; items: Item[] };
 
 function todayStr() {
   const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
@@ -121,11 +122,29 @@ export default function StoreChecklistPage() {
         <div className="space-y-5">
           {groups.map((g) => (
             <div key={g.id} className="bg-white rounded-card border border-ink/10 p-4">
-              <p className="font-bold text-ink mb-3">{g.name}</p>
+              <p className="font-bold text-ink mb-2">{g.name}</p>
+              {g.referencePhotoUrl && (
+                <a
+                  href={g.referencePhotoUrl}
+                  target="_blank"
+                  className="block mb-3"
+                >
+                  <img
+                    src={g.referencePhotoUrl}
+                    alt="参考写真"
+                    className="w-full max-h-40 object-cover rounded-card border border-ink/10"
+                  />
+                </a>
+              )}
               <div className="space-y-3">
                 {g.items.map((it) => (
                   <div key={it.id} className="border border-ink/10 rounded-card p-3">
-                    <p className="text-sm font-semibold text-ink mb-2">{it.name}</p>
+                    <p className="text-sm font-semibold text-ink mb-1">{it.name}</p>
+                    {it.guide && (
+                      <p className="text-xs text-ink/50 mb-2 whitespace-pre-wrap">
+                        {it.guide}
+                      </p>
+                    )}
                     <div className="flex gap-2 mb-2">
                       <button
                         onClick={() => setPassed(it.id, true)}

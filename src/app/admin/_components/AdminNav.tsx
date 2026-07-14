@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 const items = [
   { href: "/admin", label: "提出状況", icon: "📊" },
-  { href: "/admin/complaints", label: "クレーム管理", icon: "📝" },
+  { href: "/admin/reports", label: "月次レポート", icon: "🖨️" },
   { href: "/admin/documents", label: "書類確認", icon: "📄" },
   { href: "/admin/stores", label: "店舗・設備管理", icon: "🏬" },
 ];
@@ -20,7 +20,7 @@ export default function AdminNav({ adminName }: { adminName: string }) {
   }
 
   return (
-    <aside className="w-56 shrink-0 bg-white border-r border-ink/10 min-h-screen py-6 px-3 hidden md:flex flex-col">
+    <aside className="w-56 shrink-0 bg-white border-r border-ink/10 min-h-screen py-6 px-3 hidden md:flex flex-col print:hidden">
       <div className="px-3 mb-6">
         <p className="font-bold text-ink">現場管理（事務所）</p>
         <p className="text-xs text-ink/50">{adminName} さん</p>

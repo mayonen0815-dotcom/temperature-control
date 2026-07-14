@@ -7,11 +7,12 @@ import Link from "next/link";
 type Item = {
   id: string;
   name: string;
+  guide: string | null;
   passed: boolean | null;
   photoUrl: string | null;
   note: string;
 };
-type Group = { id: string; name: string; items: Item[] };
+type Group = { id: string; name: string; referencePhotoUrl: string | null; items: Item[] };
 
 export default function AdminChecklistViewPage() {
   const params = useParams<{ storeId: string }>();
@@ -92,14 +93,28 @@ export default function AdminChecklistViewPage() {
             <div className="space-y-4">
               {groups.map((g) => (
                 <div key={g.id} className="bg-white rounded-card border border-ink/10 p-4">
-                  <p className="font-bold text-ink mb-3">{g.name}</p>
+                  <p className="font-bold text-ink mb-2">{g.name}</p>
+                  {g.referencePhotoUrl && (
+                    <a href={g.referencePhotoUrl} target="_blank" className="block mb-3">
+                      <img
+                        src={g.referencePhotoUrl}
+                        alt="参考写真"
+                        className="w-full max-h-32 object-cover rounded-card border border-ink/10"
+                      />
+                    </a>
+                  )}
                   <div className="space-y-2">
                     {g.items.map((it) => (
                       <div
                         key={it.id}
                         className="flex items-center justify-between border border-ink/10 rounded-card px-3 py-2"
                       >
-                        <p className="text-sm text-ink">{it.name}</p>
+                        <div>
+                          <p className="text-sm text-ink">{it.name}</p>
+                          {it.guide && (
+                            <p className="text-xs text-ink/50 whitespace-pre-wrap">{it.guide}</p>
+                          )}
+                        </div>
                         <div className="flex items-center gap-2">
                           {it.passed === null ? (
                             <span className="text-xs text-ink/40">未回答</span>
