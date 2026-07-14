@@ -8,6 +8,7 @@ const items = [
   { href: "/admin/reports", label: "月次レポート", icon: "🖨️" },
   { href: "/admin/documents", label: "書類確認", icon: "📄" },
   { href: "/admin/stores", label: "店舗・設備管理", icon: "🏬" },
+  { href: "/admin/admins", label: "アカウント管理", icon: "👤" },
 ];
 
 export default function AdminNav({ adminName }: { adminName: string }) {
