@@ -77,3 +77,25 @@ export async function POST(
 
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { storeId: string } }
+) {
+  const session = await getAdminSession();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const { date, period } = await req.json();
+  const logDate = normalizeDateJst(date ? new Date(date) : new Date());
+  const p = period === "PM" ? "PM" : "AM";
+
+  await prisma.temperatureLog.deleteMany({
+    where: { storeId: params.storeId, logDate, period: p },
+  });
+
+  await prisma.temperatureSubmission.deleteMany({
+    where: { storeId: params.storeId, logDate, period: p },
+  });
+
+  return NextResponse.json({ ok: true });
+}

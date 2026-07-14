@@ -75,6 +75,21 @@ function PeriodPanel({
     }
   }
 
+  async function remove() {
+    if (!confirm(`${label}の記録を削除します。よろしいですか？（元に戻せません）`)) return;
+    setSaving(true);
+    try {
+      await fetch(`/api/admin/temperature/${storeId}/save`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date, period }),
+      });
+      onSaved();
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="bg-white rounded-card border border-ink/10 p-4">
       <div className="flex items-center justify-between mb-3">
@@ -135,6 +150,15 @@ function PeriodPanel({
           保存して提出済みにする
         </button>
       </div>
+      {data.submitted && (
+        <button
+          onClick={remove}
+          disabled={saving}
+          className="w-full mt-2 rounded-card border border-warn/40 text-warn font-semibold py-2 text-sm disabled:opacity-50"
+        >
+          この記録を削除する
+        </button>
+      )}
     </div>
   );
 }
