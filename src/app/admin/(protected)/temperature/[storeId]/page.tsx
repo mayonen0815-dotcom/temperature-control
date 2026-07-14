@@ -217,7 +217,7 @@ export default function AdminTemperatureDetailPage() {
       ) : (
         <div className="grid md:grid-cols-2 gap-4">
           <PeriodPanel
-            label="朝（AM）"
+            label="昼（AM）"
             period="AM"
             data={am}
             storeId={params.storeId}

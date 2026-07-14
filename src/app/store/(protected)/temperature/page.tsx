@@ -115,7 +115,7 @@ export default function StoreTemperaturePage() {
                 period === p ? "bg-moss text-white" : "bg-white text-ink/60"
               }`}
             >
-              {p === "AM" ? "朝" : "夜"}
+              {p === "AM" ? "昼" : "夜"}
             </button>
           ))}
         </div>

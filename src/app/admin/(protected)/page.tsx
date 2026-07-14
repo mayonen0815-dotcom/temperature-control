@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
                               ? "bg-ok/15 text-ok"
                               : "bg-warn/15 text-warn"
                           }`}
-                          title={`朝:${d.am ? "済" : "未"} / 夜:${d.pm ? "済" : "未"}`}
+                          title={`昼:${d.am ? "済" : "未"} / 夜:${d.pm ? "済" : "未"}`}
                         >
                           {d.complete ? "○" : "×"}
                         </Link>
@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
         </div>
       )}
       <p className="text-xs text-ink/40 mt-3">
-        ○＝朝・夜とも提出済み　×＝未提出あり（クリックで内容の確認・代筆入力ができます）
+        ○＝昼・夜とも提出済み　×＝未提出あり（クリックで内容の確認・代筆入力ができます）
       </p>
     </div>
   );

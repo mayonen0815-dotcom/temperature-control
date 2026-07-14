@@ -32,6 +32,30 @@ async function main() {
             { name: "製氷機①", minTemp: -5, maxTemp: 5, sortOrder: 3 },
           ],
         },
+        checklistGroups: {
+          create: [
+            {
+              name: "第1グループ：非加熱のもの",
+              sortOrder: 0,
+              items: { create: [{ name: "非加熱のもの", sortOrder: 0 }] },
+            },
+            {
+              name: "第2グループ：加熱するもの",
+              sortOrder: 1,
+              items: {
+                create: [
+                  { name: "加熱するもの", sortOrder: 0 },
+                  { name: "加熱後に高温保存", sortOrder: 1 },
+                ],
+              },
+            },
+            {
+              name: "第3グループ：冷凍するもの",
+              sortOrder: 2,
+              items: { create: [{ name: "冷凍するもの", sortOrder: 0 }] },
+            },
+          ],
+        },
       },
     });
     console.log(`✅ サンプル店舗を作成しました: ${store.name} (${store.storeCode})`);

@@ -146,6 +146,13 @@ export default function AdminStoresPage() {
                     >
                       設備を管理 →
                     </Link>
+                    <span className="mx-1 text-ink/20">|</span>
+                    <Link
+                      href={`/admin/checklist/${s.id}`}
+                      className="text-moss font-semibold hover:underline"
+                    >
+                      重点管理記録 →
+                    </Link>
                   </td>
                 </tr>
               ))}

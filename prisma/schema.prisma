@@ -28,6 +28,9 @@ model Store {
   temperatureSubmissions TemperatureSubmission[]
   complaints             Complaint[]
   documents              Document[]
+  checklistGroups        ChecklistGroup[]
+  checklistAnswers       ChecklistAnswer[]
+  checklistSubmissions   ChecklistSubmission[]
 }
 
 // ---------------------------------------------
@@ -142,6 +145,72 @@ model Document {
   createdAt  DateTime       @default(now())
 
   @@index([storeId])
+}
+
+// ---------------------------------------------
+// 重点管理記録：グループ・項目は設備と同様、事務所側が店舗ごとに管理する
+// ---------------------------------------------
+model ChecklistGroup {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id])
+  name      String   // 例：第1グループ：非加熱のもの
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+
+  items ChecklistItem[]
+
+  @@index([storeId])
+}
+
+model ChecklistItem {
+  id        String   @id @default(cuid())
+  groupId   String
+  group     ChecklistGroup @relation(fields: [groupId], references: [id])
+  name      String   // 例：非加熱のもの／加熱後に高温保存
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+
+  answers ChecklistAnswer[]
+
+  @@index([groupId])
+}
+
+// 「否」を選んだ場合は写真必須（アプリ側のロジックで強制する）
+model ChecklistAnswer {
+  id            String   @id @default(cuid())
+  itemId        String
+  item          ChecklistItem @relation(fields: [itemId], references: [id])
+  storeId       String
+  store         Store    @relation(fields: [storeId], references: [id])
+  logDate       DateTime
+  passed        Boolean  // true=可（OK）, false=否（NG・写真必須）
+  photoUrl      String?
+  note          String?
+  staffName     String
+  editedByAdmin Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([itemId, logDate])
+  @@index([storeId, logDate])
+}
+
+// 体調管理欄＋提出確定（1日1回）
+model ChecklistSubmission {
+  id               String   @id @default(cuid())
+  storeId          String
+  store            Store    @relation(fields: [storeId], references: [id])
+  logDate          DateTime
+  staffCondition   String   // 体調管理（当日出勤者）
+  absenceNote      String?  // 備考（欠勤者についてなど）
+  confirmedBy      String   // 確認者
+  submittedBy      String
+  submittedByAdmin Boolean  @default(false)
+  submittedAt      DateTime @default(now())
+
+  @@unique([storeId, logDate])
+  @@index([storeId, logDate])
 }
 
 // ---------------------------------------------
