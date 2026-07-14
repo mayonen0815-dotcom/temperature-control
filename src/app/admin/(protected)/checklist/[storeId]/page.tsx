@@ -28,6 +28,7 @@ export default function AdminChecklistViewPage() {
   const [absenceNote, setAbsenceNote] = useState("");
   const [confirmedBy, setConfirmedBy] = useState("");
   const [photoFiles, setPhotoFiles] = useState<Record<string, File>>({});
+  const [uploadingGroupPhoto, setUploadingGroupPhoto] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -63,6 +64,21 @@ export default function AdminChecklistViewPage() {
         items: g.items.map((it) => (it.id === itemId ? { ...it, passed } : it)),
       }))
     );
+  }
+
+  async function uploadGroupPhoto(groupId: string, file: File) {
+    setUploadingGroupPhoto(groupId);
+    try {
+      const fd = new FormData();
+      fd.append("photo", file);
+      await fetch(`/api/admin/checklist-groups/${groupId}/photo`, {
+        method: "POST",
+        body: fd,
+      });
+      await load();
+    } finally {
+      setUploadingGroupPhoto(null);
+    }
   }
 
   async function submitForm(submit: boolean) {
@@ -152,12 +168,12 @@ export default function AdminChecklistViewPage() {
                       <a
                         href={g.referencePhotoUrl}
                         target="_blank"
-                        className="inline-block mb-3 text-sm text-moss underline"
+                        className="inline-block mb-2 text-sm text-moss underline"
                       >
                         📄 参考資料（PDF）を見る
                       </a>
                     ) : (
-                      <a href={g.referencePhotoUrl} target="_blank" className="block mb-3">
+                      <a href={g.referencePhotoUrl} target="_blank" className="block mb-2">
                         <img
                           src={g.referencePhotoUrl}
                           alt="参考写真"
@@ -166,6 +182,24 @@ export default function AdminChecklistViewPage() {
                       </a>
                     )
                   )}
+                  <div className="mb-3">
+                    <label className="block text-xs font-medium text-ink/50 mb-1">
+                      参考写真・資料（店舗側にも表示されます）
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*,application/pdf"
+                      disabled={uploadingGroupPhoto === g.id}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadGroupPhoto(g.id, file);
+                      }}
+                      className="text-sm"
+                    />
+                    {uploadingGroupPhoto === g.id && (
+                      <p className="text-xs text-ink/40 mt-1">アップロード中...</p>
+                    )}
+                  </div>
                   <div className="space-y-3">
                     {g.items.map((it) => (
                       <div key={it.id} className="border border-ink/10 rounded-card p-3">
