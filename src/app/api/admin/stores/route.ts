@@ -61,9 +61,9 @@ export async function POST(req: NextRequest) {
             },
           },
           {
-            name: "第3グループ：冷凍するもの",
+            name: "第3グループ：冷蔵するもの",
             sortOrder: 2,
-            items: { create: [{ name: "冷凍するもの", sortOrder: 0 }] },
+            items: { create: [{ name: "冷蔵するもの", sortOrder: 0 }] },
           },
         ],
       },
