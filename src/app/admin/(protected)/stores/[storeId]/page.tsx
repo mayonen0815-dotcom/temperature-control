@@ -320,24 +320,34 @@ function ChecklistManager({ storeId }: { storeId: string }) {
 
               <div className="mb-3">
                 {g.referencePhotoUrl && (
-                  <a
-                    href={g.referencePhotoUrl}
-                    target="_blank"
-                    className="block mb-2"
-                  >
-                    <img
-                      src={g.referencePhotoUrl}
-                      alt="参考写真"
-                      className="w-full max-h-32 object-cover rounded-card border border-ink/10"
-                    />
-                  </a>
+                  g.referencePhotoUrl.toLowerCase().endsWith(".pdf") ? (
+                    <a
+                      href={g.referencePhotoUrl}
+                      target="_blank"
+                      className="inline-block mb-2 text-sm text-moss underline"
+                    >
+                      📄 参考資料（PDF）を見る
+                    </a>
+                  ) : (
+                    <a
+                      href={g.referencePhotoUrl}
+                      target="_blank"
+                      className="block mb-2"
+                    >
+                      <img
+                        src={g.referencePhotoUrl}
+                        alt="参考写真"
+                        className="w-full max-h-32 object-cover rounded-card border border-ink/10"
+                      />
+                    </a>
+                  )
                 )}
                 <label className="block text-xs font-medium text-ink/60 mb-1">
                   参考写真（店舗側にも表示されます）
                 </label>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/*,application/pdf"
                   disabled={uploadingPhoto === g.id}
                   onChange={(e) => {
                     const file = e.target.files?.[0];

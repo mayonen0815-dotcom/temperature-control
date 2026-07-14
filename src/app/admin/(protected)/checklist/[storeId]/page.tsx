@@ -148,13 +148,23 @@ export default function AdminChecklistViewPage() {
                 <div key={g.id} className="bg-white rounded-card border border-ink/10 p-4">
                   <p className="font-bold text-ink mb-2">{g.name}</p>
                   {g.referencePhotoUrl && (
-                    <a href={g.referencePhotoUrl} target="_blank" className="block mb-3">
-                      <img
-                        src={g.referencePhotoUrl}
-                        alt="参考写真"
-                        className="w-full max-h-32 object-cover rounded-card border border-ink/10"
-                      />
-                    </a>
+                    g.referencePhotoUrl.toLowerCase().endsWith(".pdf") ? (
+                      <a
+                        href={g.referencePhotoUrl}
+                        target="_blank"
+                        className="inline-block mb-3 text-sm text-moss underline"
+                      >
+                        📄 参考資料（PDF）を見る
+                      </a>
+                    ) : (
+                      <a href={g.referencePhotoUrl} target="_blank" className="block mb-3">
+                        <img
+                          src={g.referencePhotoUrl}
+                          alt="参考写真"
+                          className="w-full max-h-32 object-cover rounded-card border border-ink/10"
+                        />
+                      </a>
+                    )
                   )}
                   <div className="space-y-3">
                     {g.items.map((it) => (
@@ -199,7 +209,7 @@ export default function AdminChecklistViewPage() {
                             )}
                             <input
                               type="file"
-                              accept="image/*"
+                              accept="image/*,application/pdf"
                               onChange={(e) =>
                                 setPhotoFiles((prev) => ({
                                   ...prev,
