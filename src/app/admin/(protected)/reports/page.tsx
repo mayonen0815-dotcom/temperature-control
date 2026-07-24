@@ -140,7 +140,6 @@ export default function AdminReportsPage() {
             </h2>
           </div>
 
-          {/* 温度記録表 */}
           <div>
             <p className="font-bold text-ink mb-2">温度記録表</p>
             <div className="overflow-x-auto">
@@ -191,7 +190,6 @@ export default function AdminReportsPage() {
             </div>
           </div>
 
-          {/* 重点管理記録表 */}
           <div className="break-before-page">
             <p className="font-bold text-ink mb-2">重点管理記録表</p>
             <div className="overflow-x-auto">

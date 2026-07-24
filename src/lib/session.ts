@@ -51,7 +51,7 @@ export async function setStoreSession(session: StoreSession) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 12, // 12時間
+    maxAge: 60 * 60 * 12,
   });
 }
 

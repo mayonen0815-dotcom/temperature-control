@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
 
   const logDate = normalizeDateJst(date ? new Date(date) : new Date());
 
-  // 「否」を選んだ項目は写真必須。新規アップロードが無ければ既存の写真が必要。
   const existingAnswers = await prisma.checklistAnswer.findMany({
     where: { itemId: { in: answers.map((a) => a.itemId) }, logDate },
   });

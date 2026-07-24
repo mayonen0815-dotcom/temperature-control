@@ -10,14 +10,14 @@ export async function GET(
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
-  const month = searchParams.get("month"); // "YYYY-MM"
+  const month = searchParams.get("month");
   if (!month || !/^\d{4}-\d{2}$/.test(month)) {
     return NextResponse.json({ error: "月の指定が不正です" }, { status: 400 });
   }
 
   const [y, m] = month.split("-").map(Number);
   const rangeStart = new Date(Date.UTC(y, m - 1, 1));
-  const rangeEnd = new Date(Date.UTC(y, m, 0)); // 月末日
+  const rangeEnd = new Date(Date.UTC(y, m, 0));
 
   const store = await prisma.store.findUnique({ where: { id: params.storeId } });
   if (!store) return NextResponse.json({ error: "not found" }, { status: 404 });

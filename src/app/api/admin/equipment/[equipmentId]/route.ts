@@ -30,7 +30,6 @@ export async function DELETE(
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  // 実データを保持したいので論理削除（active=false）にする
   await prisma.equipment.update({
     where: { id: params.equipmentId },
     data: { active: false },
