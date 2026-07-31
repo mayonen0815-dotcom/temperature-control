@@ -4,11 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 const items = [
-  { href: "/admin", label: "ダッシュボード", icon: "📊" },
-  { href: "/admin/employees", label: "従業員情報", icon: "🧑‍🤝‍🧑" },
-  { href: "/admin/reports", label: "月次レポート", icon: "🖨️" },
-  { href: "/admin/documents", label: "書類確認", icon: "📄" },
-  { href: "/admin/stores", label: "店舗管理", icon: "🏬" },
+  { href: "/admin/employees", label: "従業員管理", icon: "🧑‍🤝‍🧑" },
+  { href: "/admin/retirees", label: "退職者", icon: "📦" },
   { href: "/admin/admins", label: "アカウント管理", icon: "👤" },
 ];
 
