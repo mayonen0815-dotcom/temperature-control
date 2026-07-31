@@ -36,5 +36,14 @@ export async function POST(req: NextRequest) {
     },
   });
 
+  // アカウント名と同じ店舗が無ければ、店舗としても作成する（従業員管理・退職者に反映される）
+  const existingStore = await prisma.store.findFirst({ where: { name: admin.name } });
+  if (!existingStore) {
+    const storeCode = `STORE-${Date.now().toString(36).toUpperCase()}`;
+    await prisma.store.create({
+      data: { storeCode, name: admin.name },
+    });
+  }
+
   return NextResponse.json({ ok: true, admin: { id: admin.id, name: admin.name } });
 }

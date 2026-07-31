@@ -10,6 +10,10 @@ export default function AdminAccountsPage() {
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [renaming, setRenaming] = useState(false);
+  const [renameError, setRenameError] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,7 +50,12 @@ export default function AdminAccountsPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`「${name}」のアカウントを削除しますか？（元に戻せません）`)) return;
+    if (
+      !confirm(
+        `「${name}」のアカウントを削除しますか？\n同じ名前の店舗がある場合、その店舗の従業員データ・書類フォルダも一緒に削除されます。（元に戻せません）`
+      )
+    )
+      return;
     const res = await fetch(`/api/admin/admins/${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!res.ok) {
@@ -54,6 +63,39 @@ export default function AdminAccountsPage() {
       return;
     }
     await load();
+  }
+
+  function startRename(admin: Admin) {
+    setEditingId(admin.id);
+    setEditingName(admin.name);
+    setRenameError("");
+  }
+
+  function cancelRename() {
+    setEditingId(null);
+    setEditingName("");
+    setRenameError("");
+  }
+
+  async function saveRename(id: string) {
+    setRenameError("");
+    setRenaming(true);
+    try {
+      const res = await fetch(`/api/admin/admins/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editingName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setRenameError(data.error || "変更に失敗しました");
+        return;
+      }
+      cancelRename();
+      await load();
+    } finally {
+      setRenaming(false);
+    }
   }
 
   return (
@@ -101,14 +143,56 @@ export default function AdminAccountsPage() {
             <tbody>
               {admins.map((a) => (
                 <tr key={a.id} className="border-b border-ink/5">
-                  <td className="px-4 py-3 font-semibold text-ink">{a.name}</td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => handleDelete(a.id, a.name)}
-                      className="text-warn text-sm hover:underline"
-                    >
-                      削除
-                    </button>
+                  <td className="px-4 py-3 font-semibold text-ink">
+                    {editingId === a.id ? (
+                      <div>
+                        <input
+                          className="rounded-card border border-ink/15 px-3 py-1.5 w-48 text-sm"
+                          value={editingName}
+                          onChange={(e) => setEditingName(e.target.value)}
+                          autoFocus
+                        />
+                        {renameError && (
+                          <p className="text-warn text-xs mt-1">{renameError}</p>
+                        )}
+                      </div>
+                    ) : (
+                      a.name
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-right space-x-2">
+                    {editingId === a.id ? (
+                      <>
+                        <button
+                          onClick={() => saveRename(a.id)}
+                          disabled={renaming}
+                          className="text-moss text-sm hover:underline disabled:opacity-50"
+                        >
+                          保存
+                        </button>
+                        <button
+                          onClick={cancelRename}
+                          className="text-ink/40 text-sm hover:underline"
+                        >
+                          キャンセル
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => startRename(a)}
+                          className="text-moss text-sm hover:underline"
+                        >
+                          名前変更
+                        </button>
+                        <button
+                          onClick={() => handleDelete(a.id, a.name)}
+                          className="text-warn text-sm hover:underline"
+                        >
+                          削除
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -118,6 +202,7 @@ export default function AdminAccountsPage() {
       )}
       <p className="text-xs text-ink/40 mt-3">
         ログイン中の自分のアカウントと、最後の1つのアカウントは削除できません。
+        アカウント名と同じ店舗が「従業員管理」「退職者」にも自動で反映されます（削除すると、その店舗の従業員データも一緒に削除されます。名前変更すると、店舗名も一緒に変わります）。
       </p>
     </div>
   );
