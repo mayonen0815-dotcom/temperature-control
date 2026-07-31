@@ -33,6 +33,7 @@ export default function StoreEmployeesPage() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [showResigned, setShowResigned] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -108,6 +109,11 @@ export default function StoreEmployeesPage() {
     if (editingId === id) resetForm();
     await load();
   }
+
+  const visibleEmployees = showResigned
+    ? employees
+    : employees.filter((emp) => !emp.resignDate);
+  const resignedCount = employees.filter((emp) => !!emp.resignDate).length;
 
   return (
     <div>
@@ -204,10 +210,23 @@ export default function StoreEmployeesPage() {
         </div>
       </form>
 
+      {!loading && employees.length > 0 && (
+        <label className="flex items-center gap-2 text-sm text-ink/60 mb-3">
+          <input
+            type="checkbox"
+            checked={showResigned}
+            onChange={(e) => setShowResigned(e.target.checked)}
+          />
+          退職済みも表示する（{resignedCount}名）
+        </label>
+      )}
+
       {loading ? (
         <p className="text-ink/50 text-sm">読み込み中...</p>
       ) : employees.length === 0 ? (
         <p className="text-ink/50 text-sm">まだ従業員が登録されていません。</p>
+      ) : visibleEmployees.length === 0 ? (
+        <p className="text-ink/50 text-sm">在籍中の従業員はいません。</p>
       ) : (
         <div className="bg-white rounded-card border border-ink/10 overflow-hidden">
           <table className="w-full text-sm">
@@ -223,7 +242,7 @@ export default function StoreEmployeesPage() {
               </tr>
             </thead>
             <tbody>
-              {employees.map((emp) => (
+              {visibleEmployees.map((emp) => (
                 <tr key={emp.id} className="border-b border-ink/5">
                   <td className="px-4 py-3 font-semibold text-ink">{emp.name}</td>
                   <td className="px-4 py-3 text-ink/70">{emp.address || "-"}</td>
