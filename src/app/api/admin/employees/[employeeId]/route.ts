@@ -32,6 +32,8 @@ export async function DELETE(
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+  // 先に書類フォルダを削除してから従業員本体を削除する（外部キー制約エラー防止）
+  await prisma.employeeDocument.deleteMany({ where: { employeeId: params.employeeId } });
   await prisma.employee.delete({ where: { id: params.employeeId } });
   return NextResponse.json({ ok: true });
 }

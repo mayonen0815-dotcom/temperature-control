@@ -49,6 +49,11 @@ export default function StoreEmployeesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showResigned, setShowResigned] = useState(false);
+  const [transferCandidates, setTransferCandidates] = useState<{
+    employeeId: string;
+    employeeName: string;
+    options: { id: string; storeId: string; storeName: string; employmentType: string | null }[];
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,6 +104,7 @@ export default function StoreEmployeesPage() {
         resignDate: resignDate || null,
         note,
       };
+      const wasEditingId = editingId;
       const res = editingId
         ? await fetch(`/api/admin/employees/${editingId}`, {
             method: "PATCH",
@@ -117,6 +123,10 @@ export default function StoreEmployeesPage() {
       }
       resetForm();
       await load();
+
+      if (wasEditingId && employmentType === "異動") {
+        await checkTransfer(wasEditingId, name);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -127,6 +137,36 @@ export default function StoreEmployeesPage() {
     await fetch(`/api/admin/employees/${id}`, { method: "DELETE" });
     if (editingId === id) resetForm();
     await load();
+  }
+
+  // 「異動」で保存した従業員と同姓同名で、他店舗に在籍中の人がいないか自動チェックする
+  async function checkTransfer(employeeId: string, employeeName: string) {
+    const res = await fetch(`/api/admin/employees/${employeeId}/transfer-candidates`);
+    const data = await res.json();
+    const candidates = data.candidates ?? [];
+
+    if (candidates.length === 0) return;
+
+    if (candidates.length === 1) {
+      // 候補が1件だけなら、同一人物として自動的にこちらの登録を削除する
+      await fetch(`/api/admin/employees/${employeeId}`, { method: "DELETE" });
+      await load();
+      alert(
+        `${employeeName} さんは「${candidates[0].storeName}」に在籍が見つかったため、こちらの登録は自動的に削除しました。`
+      );
+      return;
+    }
+
+    // 候補が複数ある場合は、どの店舗の人と同一人物か手動で選んでもらう
+    setTransferCandidates({ employeeId, employeeName, options: candidates });
+  }
+
+  async function confirmTransfer(storeName: string) {
+    if (!transferCandidates) return;
+    await fetch(`/api/admin/employees/${transferCandidates.employeeId}`, { method: "DELETE" });
+    setTransferCandidates(null);
+    await load();
+    alert(`「${storeName}」の在籍者と同一人物として、こちらの登録を削除しました。`);
   }
 
   const visibleEmployees = showResigned
@@ -244,6 +284,39 @@ export default function StoreEmployeesPage() {
           )}
         </div>
       </form>
+
+      {transferCandidates && (
+        <div className="bg-white rounded-card border border-warn/40 p-4 mb-6">
+          <p className="text-sm font-semibold text-ink mb-3">
+            「{transferCandidates.employeeName}」さんと同姓同名の在籍者が複数の店舗で見つかりました。
+            異動先はどちらですか？
+          </p>
+          <ul className="space-y-2 mb-3">
+            {transferCandidates.options.map((opt) => (
+              <li
+                key={opt.id}
+                className="flex items-center justify-between bg-ink/5 rounded-card px-3 py-2"
+              >
+                <span className="text-sm text-ink/70">
+                  {opt.storeName}（{opt.employmentType || "-"}）
+                </span>
+                <button
+                  onClick={() => confirmTransfer(opt.storeName)}
+                  className="text-warn text-sm font-semibold hover:underline"
+                >
+                  この人に統合してこちらを削除
+                </button>
+              </li>
+            ))}
+          </ul>
+          <button
+            onClick={() => setTransferCandidates(null)}
+            className="text-ink/40 text-sm hover:underline"
+          >
+            何もしない（このまま残す）
+          </button>
+        </div>
+      )}
 
       {!loading && employees.length > 0 && (
         <label className="flex items-center gap-2 text-sm text-ink/60 mb-3">

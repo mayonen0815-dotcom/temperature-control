@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 
 const items = [
   { href: "/admin/employees", label: "従業員管理", icon: "🧑‍🤝‍🧑" },
+  { href: "/admin/managers", label: "店舗マネージャー", icon: "⭐" },
   { href: "/admin/retirees", label: "退職者", icon: "📦" },
   { href: "/admin/admins", label: "アカウント管理", icon: "👤" },
 ];
