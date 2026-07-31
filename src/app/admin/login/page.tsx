@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -35,10 +34,8 @@ export default function AdminLoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center px-6">
       <form onSubmit={handleSubmit} className="w-full max-w-sm">
-        <Link href="/" className="text-sm text-ink/50 mb-4 inline-block">
-          ← トップに戻る
-        </Link>
-        <h1 className="text-xl font-bold text-ink mb-6">事務所用ログイン</h1>
+        <h1 className="text-xl font-bold text-ink mb-1">UMAMI</h1>
+        <p className="text-sm text-ink/50 mb-6">従業員データ管理</p>
 
         <label className="block text-sm font-medium text-ink/70 mb-1">名前</label>
         <input

@@ -8,7 +8,6 @@ type Store = {
   storeCode: string;
   name: string;
   active: boolean;
-  hasPin: boolean;
   employeeCount: number;
 };
 
@@ -17,7 +16,6 @@ export default function AdminStoresPage() {
   const [loading, setLoading] = useState(true);
   const [storeCode, setStoreCode] = useState("");
   const [name, setName] = useState("");
-  const [pin, setPin] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -41,7 +39,7 @@ export default function AdminStoresPage() {
       const res = await fetch("/api/admin/stores", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ storeCode, name, pin }),
+        body: JSON.stringify({ storeCode, name }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -50,7 +48,6 @@ export default function AdminStoresPage() {
       }
       setStoreCode("");
       setName("");
-      setPin("");
       await load();
     } finally {
       setSubmitting(false);
@@ -89,17 +86,6 @@ export default function AdminStoresPage() {
             required
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-ink/60 mb-1">
-            PIN（任意）
-          </label>
-          <input
-            className="rounded-card border border-ink/15 px-3 py-2 w-28"
-            placeholder="4桁"
-            value={pin}
-            onChange={(e) => setPin(e.target.value)}
-          />
-        </div>
         <button
           type="submit"
           disabled={submitting}
@@ -120,7 +106,6 @@ export default function AdminStoresPage() {
                 <th className="px-4 py-3">店舗ID</th>
                 <th className="px-4 py-3">店舗名</th>
                 <th className="px-4 py-3">従業員数</th>
-                <th className="px-4 py-3">PIN</th>
                 <th className="px-4 py-3">状態</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -131,7 +116,6 @@ export default function AdminStoresPage() {
                   <td className="px-4 py-3 font-mono text-ink/70">{s.storeCode}</td>
                   <td className="px-4 py-3 font-semibold text-ink">{s.name}</td>
                   <td className="px-4 py-3">{s.employeeCount}名</td>
-                  <td className="px-4 py-3">{s.hasPin ? "設定済み" : "未設定"}</td>
                   <td className="px-4 py-3">
                     {s.active ? (
                       <span className="text-ok">稼働中</span>

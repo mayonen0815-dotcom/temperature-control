@@ -24,7 +24,7 @@ export default function AdminNav({ adminName }: { adminName: string }) {
   return (
     <aside className="w-56 shrink-0 bg-white border-r border-ink/10 min-h-screen py-6 px-3 hidden md:flex flex-col print:hidden">
       <div className="px-3 mb-6">
-        <p className="font-bold text-ink">UMAMI 従業員データ管理（事務所）</p>
+        <p className="font-bold text-ink">UMAMI 従業員データ管理</p>
         <p className="text-xs text-ink/50">{adminName} さん</p>
       </div>
       <nav className="flex-1 space-y-1">

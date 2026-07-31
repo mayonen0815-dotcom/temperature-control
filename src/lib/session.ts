@@ -3,21 +3,13 @@ import { cookies } from "next/headers";
 
 const SECRET = process.env.SESSION_SECRET || "dev-secret-change-me";
 
-export type StoreSession = {
-  type: "store";
-  storeId: string;
-  storeCode: string;
-  storeName: string;
-  staffName: string;
-};
-
 export type AdminSession = {
   type: "admin";
   adminId: string;
   name: string;
 };
 
-export type Session = StoreSession | AdminSession;
+export type Session = AdminSession;
 
 function sign(payload: string): string {
   return crypto.createHmac("sha256", SECRET).update(payload).digest("base64url");
@@ -41,19 +33,7 @@ export function decodeSession(token: string | undefined | null): Session | null 
   }
 }
 
-const STORE_COOKIE = "genba_store_session";
 const ADMIN_COOKIE = "genba_admin_session";
-
-export async function setStoreSession(session: StoreSession) {
-  const c = await cookies();
-  c.set(STORE_COOKIE, encodeSession(session), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 12,
-  });
-}
 
 export async function setAdminSession(session: AdminSession) {
   const c = await cookies();
@@ -66,21 +46,10 @@ export async function setAdminSession(session: AdminSession) {
   });
 }
 
-export async function getStoreSession(): Promise<StoreSession | null> {
-  const c = await cookies();
-  const session = decodeSession(c.get(STORE_COOKIE)?.value);
-  return session?.type === "store" ? session : null;
-}
-
 export async function getAdminSession(): Promise<AdminSession | null> {
   const c = await cookies();
   const session = decodeSession(c.get(ADMIN_COOKIE)?.value);
   return session?.type === "admin" ? session : null;
-}
-
-export async function clearStoreSession() {
-  const c = await cookies();
-  c.delete(STORE_COOKIE);
 }
 
 export async function clearAdminSession() {
