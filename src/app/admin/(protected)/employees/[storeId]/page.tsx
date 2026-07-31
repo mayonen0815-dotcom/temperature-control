@@ -4,7 +4,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
-const EMPLOYMENT_TYPES = ["正社員", "契約社員", "パート", "アルバイト", "業務委託", "その他"];
+const MAIN_EMPLOYMENT_TYPES = ["正社員", "正社員（マネージャー等）", "アルバイト", "異動", "その他"];
+const SUB_EMPLOYMENT_TYPES = ["契約社員", "業務委託", "不明"];
+
+// 保存されている雇用形態の値から、上段（メイン）・下段（その他選択時のサブ）の選択状態を組み立てる
+function splitEmploymentType(value: string | null) {
+  if (!value) return { main: MAIN_EMPLOYMENT_TYPES[0], sub: SUB_EMPLOYMENT_TYPES[0] };
+  if (MAIN_EMPLOYMENT_TYPES.includes(value) && value !== "その他") {
+    return { main: value, sub: SUB_EMPLOYMENT_TYPES[0] };
+  }
+  if (SUB_EMPLOYMENT_TYPES.includes(value)) {
+    return { main: "その他", sub: value };
+  }
+  // パートなど、過去に使われていたが今の選択肢に無い値は「その他」扱いにしつつ元の値を保持する
+  return { main: "その他", sub: value };
+}
 
 type Employee = {
   id: string;
@@ -26,7 +40,8 @@ export default function StoreEmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
-  const [employmentType, setEmploymentType] = useState(EMPLOYMENT_TYPES[0]);
+  const [mainType, setMainType] = useState(MAIN_EMPLOYMENT_TYPES[0]);
+  const [subType, setSubType] = useState(SUB_EMPLOYMENT_TYPES[0]);
   const [hireDate, setHireDate] = useState("");
   const [resignDate, setResignDate] = useState("");
   const [note, setNote] = useState("");
@@ -51,7 +66,8 @@ export default function StoreEmployeesPage() {
     setEditingId(null);
     setName("");
     setAddress("");
-    setEmploymentType(EMPLOYMENT_TYPES[0]);
+    setMainType(MAIN_EMPLOYMENT_TYPES[0]);
+    setSubType(SUB_EMPLOYMENT_TYPES[0]);
     setHireDate("");
     setResignDate("");
     setNote("");
@@ -61,7 +77,9 @@ export default function StoreEmployeesPage() {
     setEditingId(emp.id);
     setName(emp.name);
     setAddress(emp.address ?? "");
-    setEmploymentType(emp.employmentType ?? EMPLOYMENT_TYPES[0]);
+    const { main, sub } = splitEmploymentType(emp.employmentType);
+    setMainType(main);
+    setSubType(sub);
     setHireDate(toDateInput(emp.hireDate));
     setResignDate(toDateInput(emp.resignDate));
     setNote(emp.note ?? "");
@@ -72,6 +90,7 @@ export default function StoreEmployeesPage() {
     setError("");
     setSubmitting(true);
     try {
+      const employmentType = mainType === "その他" ? subType : mainType;
       const body = {
         name,
         address,
@@ -152,15 +171,31 @@ export default function StoreEmployeesPage() {
             <label className="block text-xs font-medium text-ink/60 mb-1">雇用形態</label>
             <select
               className="w-full rounded-card border border-ink/15 px-3 py-2"
-              value={employmentType}
-              onChange={(e) => setEmploymentType(e.target.value)}
+              value={mainType}
+              onChange={(e) => setMainType(e.target.value)}
             >
-              {EMPLOYMENT_TYPES.map((t) => (
+              {MAIN_EMPLOYMENT_TYPES.map((t) => (
                 <option key={t} value={t}>
                   {t}
                 </option>
               ))}
             </select>
+            {mainType === "その他" && (
+              <select
+                className="w-full rounded-card border border-ink/15 px-3 py-2 mt-2"
+                value={subType}
+                onChange={(e) => setSubType(e.target.value)}
+              >
+                {!SUB_EMPLOYMENT_TYPES.includes(subType) && (
+                  <option value={subType}>{subType}（従来の値）</option>
+                )}
+                {SUB_EMPLOYMENT_TYPES.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
           <div>
             <label className="block text-xs font-medium text-ink/60 mb-1">入社日</label>
