@@ -47,9 +47,8 @@ export async function setAdminSession(session: AdminSession) {
 }
 
 export async function getAdminSession(): Promise<AdminSession | null> {
-  const c = await cookies();
-  const session = decodeSession(c.get(ADMIN_COOKIE)?.value);
-  return session?.type === "admin" ? session : null;
+  // ログイン機能を廃止したため、常に固定のセッションを返す（誰でもアクセス可能）
+  return { type: "admin", adminId: "shared", name: "共有アカウント" };
 }
 
 export async function clearAdminSession() {
