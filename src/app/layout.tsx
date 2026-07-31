@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "現場管理",
-  description: "温度管理・クレーム・書類提出の現場管理システム",
+  title: "UMAMI 従業員データ管理",
+  description: "従業員データ管理・重点管理記録・書類提出の店舗管理システム",
 };
 
 export default function RootLayout({

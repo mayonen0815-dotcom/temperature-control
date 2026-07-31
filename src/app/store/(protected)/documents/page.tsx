@@ -4,36 +4,54 @@ import { useState } from "react";
 
 const DOC_TYPES = ["健康診断書", "誓約書", "履歴書", "資格証", "その他"];
 
+type Slot = { docType: string; file: File | null };
+
+function emptySlots(): Slot[] {
+  return [
+    { docType: DOC_TYPES[0], file: null },
+    { docType: DOC_TYPES[0], file: null },
+    { docType: DOC_TYPES[0], file: null },
+  ];
+}
+
 export default function StoreDocumentsPage() {
   const [staffName, setStaffName] = useState("");
-  const [docType, setDocType] = useState(DOC_TYPES[0]);
-  const [file, setFile] = useState<File | null>(null);
+  const [slots, setSlots] = useState<Slot[]>(emptySlots());
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
+  function updateSlot(index: number, patch: Partial<Slot>) {
+    setSlots((prev) => prev.map((s, i) => (i === index ? { ...s, ...patch } : s)));
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    if (!file) {
-      setError("ファイルを選択してください");
+
+    const filled = slots.filter((s) => s.file);
+    if (filled.length === 0) {
+      setError("ファイルを1つ以上選択してください");
       return;
     }
+
     setSubmitting(true);
     try {
-      const fd = new FormData();
-      fd.append("staffName", staffName);
-      fd.append("docType", docType);
-      fd.append("file", file);
+      for (const slot of filled) {
+        const fd = new FormData();
+        fd.append("staffName", staffName);
+        fd.append("docType", slot.docType);
+        fd.append("file", slot.file as File);
 
-      const res = await fetch("/api/store/documents", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "送信に失敗しました");
-        return;
+        const res = await fetch("/api/store/documents", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "送信に失敗しました");
+          return;
+        }
       }
       setStaffName("");
-      setFile(null);
+      setSlots(emptySlots());
       setDone(true);
       setTimeout(() => setDone(false), 4000);
     } finally {
@@ -45,7 +63,7 @@ export default function StoreDocumentsPage() {
     <div>
       <h1 className="text-lg font-bold text-ink mb-1">書類提出</h1>
       <p className="text-sm text-ink/50 mb-4">
-        従業員の書類（健康診断書・誓約書など）を提出できます。
+        従業員の書類（健康診断書・誓約書など）を、一度に最大3件まで提出できます。
       </p>
 
       {done && (
@@ -65,30 +83,31 @@ export default function StoreDocumentsPage() {
             required
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-ink/70 mb-1">書類種別</label>
-          <select
-            className="w-full rounded-card border border-ink/15 px-4 py-3 tap-target"
-            value={docType}
-            onChange={(e) => setDocType(e.target.value)}
-          >
-            {DOC_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {t}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-ink/70 mb-1">ファイル</label>
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            className="w-full text-sm"
-            required
-          />
-        </div>
+
+        {slots.map((slot, i) => (
+          <div key={i} className="bg-white rounded-card border border-ink/10 p-4">
+            <p className="text-sm font-semibold text-ink/70 mb-3">書類 {i + 1}（任意）</p>
+            <label className="block text-sm font-medium text-ink/70 mb-1">書類種別</label>
+            <select
+              className="w-full rounded-card border border-ink/15 px-4 py-3 tap-target mb-3"
+              value={slot.docType}
+              onChange={(e) => updateSlot(i, { docType: e.target.value })}
+            >
+              {DOC_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+            <label className="block text-sm font-medium text-ink/70 mb-1">ファイル</label>
+            <input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => updateSlot(i, { file: e.target.files?.[0] ?? null })}
+              className="w-full text-sm"
+            />
+          </div>
+        ))}
 
         {error && (
           <p className="text-warn text-sm bg-warn/10 rounded-card px-3 py-2">{error}</p>

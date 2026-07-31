@@ -2,12 +2,6 @@ import Link from "next/link";
 
 const menu = [
   {
-    href: "/store/temperature",
-    label: "温度記録",
-    desc: "昼・夜の温度を入力して提出",
-    icon: "🌡️",
-  },
-  {
     href: "/store/checklist",
     label: "重点管理記録",
     desc: "衛生管理チェック・体調管理を提出",

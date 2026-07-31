@@ -22,15 +22,6 @@ export async function GET(
   const store = await prisma.store.findUnique({ where: { id: params.storeId } });
   if (!store) return NextResponse.json({ error: "not found" }, { status: 404 });
 
-  const equipments = await prisma.equipment.findMany({
-    where: { storeId: params.storeId },
-    orderBy: { sortOrder: "asc" },
-  });
-
-  const temperatureLogs = await prisma.temperatureLog.findMany({
-    where: { storeId: params.storeId, logDate: { gte: rangeStart, lte: rangeEnd } },
-  });
-
   const checklistGroups = await prisma.checklistGroup.findMany({
     where: { storeId: params.storeId },
     orderBy: { sortOrder: "asc" },
@@ -55,14 +46,6 @@ export async function GET(
   return NextResponse.json({
     store: { id: store.id, name: store.name, storeCode: store.storeCode },
     days,
-    equipments: equipments.map((e) => ({ id: e.id, name: e.name })),
-    temperatureLogs: temperatureLogs.map((l) => ({
-      equipmentId: l.equipmentId,
-      logDate: l.logDate.toISOString().slice(0, 10),
-      period: l.period,
-      value: l.value,
-      isAbnormal: l.isAbnormal,
-    })),
     checklistGroups: checklistGroups.map((g) => ({
       id: g.id,
       name: g.name,

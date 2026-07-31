@@ -18,22 +18,30 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { put } = await import("@vercel/blob");
-  const blob = await put(
-    `documents/${session.storeCode}-${Date.now()}-${file.name}`,
-    file,
-    { access: "public" }
-  );
+  try {
+    const { put } = await import("@vercel/blob");
+    const blob = await put(
+      `documents/${session.storeCode}-${Date.now()}-${file.name}`,
+      file,
+      { access: "public" }
+    );
 
-  await prisma.document.create({
-    data: {
-      storeId: session.storeId,
-      staffName,
-      docType,
-      fileUrl: blob.url,
-      fileName: file.name,
-    },
-  });
+    await prisma.document.create({
+      data: {
+        storeId: session.storeId,
+        staffName,
+        docType,
+        fileUrl: blob.url,
+        fileName: file.name,
+      },
+    });
 
-  return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    console.error("document upload failed:", err);
+    return NextResponse.json(
+      { error: `送信に失敗しました: ${err?.message ?? "不明なエラー"}` },
+      { status: 500 }
+    );
+  }
 }

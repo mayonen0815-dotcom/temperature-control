@@ -52,7 +52,15 @@ export default function AdminDocumentsPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-ink mb-6">書類確認</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-ink">書類確認</h1>
+        <button
+          onClick={load}
+          className="rounded-card border border-ink/15 px-4 py-1.5 text-sm text-ink/70 hover:bg-ink/5"
+        >
+          🔄 更新
+        </button>
+      </div>
 
       {loading ? (
         <p className="text-ink/50 text-sm">読み込み中...</p>

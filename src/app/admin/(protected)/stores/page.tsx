@@ -9,7 +9,7 @@ type Store = {
   name: string;
   active: boolean;
   hasPin: boolean;
-  equipmentCount: number;
+  employeeCount: number;
 };
 
 export default function AdminStoresPage() {
@@ -59,7 +59,7 @@ export default function AdminStoresPage() {
 
   return (
     <div>
-      <h1 className="text-xl font-bold text-ink mb-6">店舗・設備管理</h1>
+      <h1 className="text-xl font-bold text-ink mb-6">店舗管理</h1>
 
       <form
         onSubmit={handleAdd}
@@ -119,7 +119,7 @@ export default function AdminStoresPage() {
               <tr className="border-b border-ink/10 text-left text-ink/50">
                 <th className="px-4 py-3">店舗ID</th>
                 <th className="px-4 py-3">店舗名</th>
-                <th className="px-4 py-3">設備数</th>
+                <th className="px-4 py-3">従業員数</th>
                 <th className="px-4 py-3">PIN</th>
                 <th className="px-4 py-3">状態</th>
                 <th className="px-4 py-3"></th>
@@ -130,7 +130,7 @@ export default function AdminStoresPage() {
                 <tr key={s.id} className="border-b border-ink/5">
                   <td className="px-4 py-3 font-mono text-ink/70">{s.storeCode}</td>
                   <td className="px-4 py-3 font-semibold text-ink">{s.name}</td>
-                  <td className="px-4 py-3">{s.equipmentCount}台</td>
+                  <td className="px-4 py-3">{s.employeeCount}名</td>
                   <td className="px-4 py-3">{s.hasPin ? "設定済み" : "未設定"}</td>
                   <td className="px-4 py-3">
                     {s.active ? (
@@ -141,10 +141,17 @@ export default function AdminStoresPage() {
                   </td>
                   <td className="px-4 py-3">
                     <Link
+                      href={`/admin/employees/${s.id}`}
+                      className="text-moss font-semibold hover:underline"
+                    >
+                      従業員情報 →
+                    </Link>
+                    <span className="mx-1 text-ink/20">|</span>
+                    <Link
                       href={`/admin/stores/${s.id}`}
                       className="text-moss font-semibold hover:underline"
                     >
-                      設備を管理 →
+                      重点管理項目 →
                     </Link>
                     <span className="mx-1 text-ink/20">|</span>
                     <Link

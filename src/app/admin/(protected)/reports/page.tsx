@@ -5,14 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 type ReportData = {
   store: { id: string; name: string; storeCode: string };
   days: string[];
-  equipments: { id: string; name: string }[];
-  temperatureLogs: {
-    equipmentId: string;
-    logDate: string;
-    period: "AM" | "PM";
-    value: number;
-    isAbnormal: boolean;
-  }[];
   checklistGroups: { id: string; name: string; items: { id: string; name: string }[] }[];
   checklistAnswers: { itemId: string; logDate: string; passed: boolean }[];
   checklistSubmissions: {
@@ -63,14 +55,6 @@ export default function AdminReportsPage() {
     setData(d);
     setLoading(false);
   }, [storeId, month]);
-
-  function valueFor(equipmentId: string, day: string, period: "AM" | "PM") {
-    const log = data?.temperatureLogs.find(
-      (l) => l.equipmentId === equipmentId && l.logDate === day && l.period === period
-    );
-    if (!log) return "-";
-    return `${log.value}${log.isAbnormal ? "⚠" : ""}`;
-  }
 
   function passedFor(itemId: string, day: string) {
     const a = data?.checklistAnswers.find((x) => x.itemId === itemId && x.logDate === day);
@@ -141,56 +125,6 @@ export default function AdminReportsPage() {
           </div>
 
           <div>
-            <p className="font-bold text-ink mb-2">温度記録表</p>
-            <div className="overflow-x-auto">
-              <table className="text-xs border-collapse w-full">
-                <thead>
-                  <tr>
-                    <th className="border border-ink/20 px-2 py-1 bg-ink/5">日付</th>
-                    {data.equipments.map((eq) => (
-                      <th
-                        key={eq.id}
-                        colSpan={2}
-                        className="border border-ink/20 px-2 py-1 bg-ink/5"
-                      >
-                        {eq.name}
-                      </th>
-                    ))}
-                  </tr>
-                  <tr>
-                    <th className="border border-ink/20 px-2 py-1 bg-ink/5"></th>
-                    {data.equipments.flatMap((eq) => [
-                      <th key={eq.id + "-am"} className="border border-ink/20 px-2 py-1 bg-ink/5">
-                        昼
-                      </th>,
-                      <th key={eq.id + "-pm"} className="border border-ink/20 px-2 py-1 bg-ink/5">
-                        夜
-                      </th>,
-                    ])}
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.days.map((day) => (
-                    <tr key={day}>
-                      <td className="border border-ink/20 px-2 py-1 font-semibold">
-                        {formatDay(day)}
-                      </td>
-                      {data.equipments.flatMap((eq) => [
-                        <td key={eq.id + "-am"} className="border border-ink/20 px-2 py-1 text-center">
-                          {valueFor(eq.id, day, "AM")}
-                        </td>,
-                        <td key={eq.id + "-pm"} className="border border-ink/20 px-2 py-1 text-center">
-                          {valueFor(eq.id, day, "PM")}
-                        </td>,
-                      ])}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div className="break-before-page">
             <p className="font-bold text-ink mb-2">重点管理記録表</p>
             <div className="overflow-x-auto">
               <table className="text-xs border-collapse w-full">

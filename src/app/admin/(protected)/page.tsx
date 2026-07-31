@@ -3,142 +3,81 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 
-type DayStatus = { date: string; am: boolean; pm: boolean; complete: boolean };
-type StoreRow = {
-  storeId: string;
+type Store = {
+  id: string;
   storeCode: string;
-  storeName: string;
-  hasEquipment: boolean;
-  days: DayStatus[];
+  name: string;
+  active: boolean;
+  employeeCount: number;
 };
 
-function todayIso() {
-  const jst = new Date(Date.now() + 9 * 60 * 60 * 1000);
-  return jst.toISOString().slice(0, 10);
-}
-
-function formatHeader(iso: string) {
-  const d = new Date(iso + "T00:00:00Z");
-  const weekday = ["日", "月", "火", "水", "木", "金", "土"][d.getUTCDay()];
-  return { md: `${d.getUTCMonth() + 1}/${d.getUTCDate()}`, weekday };
-}
-
 export default function AdminDashboardPage() {
-  const [anchor, setAnchor] = useState(todayIso());
-  const [days, setDays] = useState<string[]>([]);
-  const [stores, setStores] = useState<StoreRow[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/admin/status-grid?anchor=${anchor}`);
+    const res = await fetch("/api/admin/stores");
     const data = await res.json();
-    setDays(data.days ?? []);
     setStores(data.stores ?? []);
     setLoading(false);
-  }, [anchor]);
+  }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  function shiftWeek(delta: number) {
-    const d = new Date(anchor + "T00:00:00Z");
-    d.setUTCDate(d.getUTCDate() + delta * 7);
-    setAnchor(d.toISOString().slice(0, 10));
-  }
-
-  const rangeLabel =
-    days.length === 7
-      ? `${formatHeader(days[0]).md} 〜 ${formatHeader(days[6]).md}`
-      : "";
+  const totalEmployees = stores.reduce((sum, s) => sum + s.employeeCount, 0);
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-ink">温度管理 提出状況</h1>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => shiftWeek(-1)}
-            className="rounded-card border border-ink/15 px-3 py-1.5 text-sm text-ink/70 hover:bg-ink/5"
-          >
-            ◀ 前の週
-          </button>
-          <span className="font-semibold text-ink">{rangeLabel}</span>
-          <button
-            onClick={() => shiftWeek(1)}
-            className="rounded-card border border-ink/15 px-3 py-1.5 text-sm text-ink/70 hover:bg-ink/5"
-          >
-            次の週 ▶
-          </button>
+      <h1 className="text-xl font-bold text-ink mb-6">ダッシュボード</h1>
+
+      <div className="grid sm:grid-cols-2 gap-4 mb-8">
+        <div className="bg-white rounded-card border border-ink/10 p-5">
+          <p className="text-xs text-ink/50 mb-1">登録店舗数</p>
+          <p className="text-3xl font-bold text-ink">{stores.length}店舗</p>
+        </div>
+        <div className="bg-white rounded-card border border-ink/10 p-5">
+          <p className="text-xs text-ink/50 mb-1">登録従業員数（全店舗合計）</p>
+          <p className="text-3xl font-bold text-ink">{totalEmployees}名</p>
         </div>
       </div>
 
+      <h2 className="font-bold text-ink mb-3">店舗一覧</h2>
       {loading ? (
         <p className="text-ink/50 text-sm">読み込み中...</p>
       ) : (
-        <div className="bg-white rounded-card border border-ink/10 overflow-x-auto">
+        <div className="bg-white rounded-card border border-ink/10 overflow-hidden">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-ink/10">
-                <th className="text-left px-4 py-3 text-ink/60 font-medium sticky left-0 bg-white">
-                  店舗
-                </th>
-                {days.map((d) => {
-                  const { md, weekday } = formatHeader(d);
-                  const isToday = d === todayIso();
-                  return (
-                    <th
-                      key={d}
-                      className={`px-4 py-3 font-medium min-w-[84px] ${
-                        isToday ? "text-moss" : "text-ink/60"
-                      }`}
-                    >
-                      <div className="text-base">{md}</div>
-                      <div className="text-xs">{weekday}</div>
-                    </th>
-                  );
-                })}
+              <tr className="border-b border-ink/10 text-left text-ink/50">
+                <th className="px-4 py-3">店舗ID</th>
+                <th className="px-4 py-3">店舗名</th>
+                <th className="px-4 py-3">従業員数</th>
+                <th className="px-4 py-3"></th>
               </tr>
             </thead>
             <tbody>
-              {stores.map((store, i) => (
-                <tr
-                  key={store.storeId}
-                  className={i % 2 === 1 ? "bg-mist/40" : ""}
-                >
-                  <td className="px-4 py-3 sticky left-0 bg-inherit">
-                    <p className="font-semibold text-ink">{store.storeName}</p>
-                    <p className="text-xs text-ink/40">{store.storeCode}</p>
+              {stores.map((s) => (
+                <tr key={s.id} className="border-b border-ink/5">
+                  <td className="px-4 py-3 font-mono text-ink/70">{s.storeCode}</td>
+                  <td className="px-4 py-3 font-semibold text-ink">{s.name}</td>
+                  <td className="px-4 py-3">{s.employeeCount}名</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/employees/${s.id}`}
+                      className="text-moss font-semibold hover:underline"
+                    >
+                      従業員情報を開く →
+                    </Link>
                   </td>
-                  {store.days.map((d) => (
-                    <td key={d.date} className="text-center px-4 py-3">
-                      {!store.hasEquipment ? (
-                        <span className="text-ink/30 text-xs">-</span>
-                      ) : (
-                        <Link
-                          href={`/admin/temperature/${store.storeId}?date=${d.date}`}
-                          className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold ${
-                            d.complete
-                              ? "bg-ok/15 text-ok"
-                              : "bg-warn/15 text-warn"
-                          }`}
-                          title={`昼:${d.am ? "済" : "未"} / 夜:${d.pm ? "済" : "未"}`}
-                        >
-                          {d.complete ? "○" : "×"}
-                        </Link>
-                      )}
-                    </td>
-                  ))}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
-      <p className="text-xs text-ink/40 mt-3">
-        ○＝昼・夜とも提出済み　×＝未提出あり（クリックで内容の確認・代筆入力ができます）
-      </p>
     </div>
   );
 }

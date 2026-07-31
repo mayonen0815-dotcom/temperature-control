@@ -9,7 +9,7 @@ export async function GET() {
 
   const stores = await prisma.store.findMany({
     orderBy: { storeCode: "asc" },
-    include: { _count: { select: { equipments: true } } },
+    include: { _count: { select: { employees: true } } },
   });
 
   return NextResponse.json({
@@ -19,7 +19,7 @@ export async function GET() {
       name: s.name,
       active: s.active,
       hasPin: !!s.pinHash,
-      equipmentCount: s._count.equipments,
+      employeeCount: s._count.employees,
     })),
   });
 }

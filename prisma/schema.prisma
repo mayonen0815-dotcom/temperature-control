@@ -15,69 +15,12 @@ model Store {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
 
-  equipments             Equipment[]
-  temperatureLogs        TemperatureLog[]
-  temperatureSubmissions TemperatureSubmission[]
   complaints             Complaint[]
   documents              Document[]
   checklistGroups        ChecklistGroup[]
   checklistAnswers       ChecklistAnswer[]
   checklistSubmissions   ChecklistSubmission[]
   employees              Employee[]
-}
-
-model Equipment {
-  id       String  @id @default(cuid())
-  storeId  String
-  store    Store   @relation(fields: [storeId], references: [id])
-  name     String
-  minTemp  Float
-  maxTemp  Float
-  sortOrder Int    @default(0)
-  active   Boolean @default(true)
-
-  temperatureLogs TemperatureLog[]
-
-  @@index([storeId])
-}
-
-enum Period {
-  AM
-  PM
-}
-
-model TemperatureLog {
-  id          String   @id @default(cuid())
-  storeId     String
-  store       Store    @relation(fields: [storeId], references: [id])
-  equipmentId String
-  equipment   Equipment @relation(fields: [equipmentId], references: [id])
-  logDate     DateTime
-  period      Period
-  value       Float
-  isAbnormal  Boolean  @default(false)
-  note        String?
-  staffName   String
-  editedByAdmin Boolean @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([storeId, logDate])
-  @@unique([equipmentId, logDate, period])
-}
-
-model TemperatureSubmission {
-  id           String   @id @default(cuid())
-  storeId      String
-  store        Store    @relation(fields: [storeId], references: [id])
-  logDate      DateTime
-  period       Period
-  submittedBy  String
-  submittedByAdmin Boolean @default(false)
-  submittedAt  DateTime @default(now())
-
-  @@unique([storeId, logDate, period])
-  @@index([storeId, logDate])
 }
 
 enum ComplaintStatus {
@@ -198,7 +141,22 @@ model Employee {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
+  documents EmployeeDocument[]
+
   @@index([storeId])
+}
+
+// 従業員ごとの書類フォルダ（複数ファイルを保管できる）
+model EmployeeDocument {
+  id         String   @id @default(cuid())
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  fileUrl    String
+  fileName   String
+  note       String?
+  createdAt  DateTime @default(now())
+
+  @@index([employeeId])
 }
 
 model AdminUser {
