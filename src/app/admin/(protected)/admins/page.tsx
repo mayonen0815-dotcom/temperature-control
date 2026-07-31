@@ -8,7 +8,6 @@ export default function AdminAccountsPage() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -32,7 +31,7 @@ export default function AdminAccountsPage() {
       const res = await fetch("/api/admin/admins", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, password }),
+        body: JSON.stringify({ name }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -40,7 +39,6 @@ export default function AdminAccountsPage() {
         return;
       }
       setName("");
-      setPassword("");
       await load();
     } finally {
       setSubmitting(false);
@@ -75,16 +73,6 @@ export default function AdminAccountsPage() {
             required
           />
         </div>
-        <div>
-          <label className="block text-xs font-medium text-ink/60 mb-1">パスワード</label>
-          <input
-            type="password"
-            className="rounded-card border border-ink/15 px-3 py-2 w-48"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
         <button
           type="submit"
           disabled={submitting}
@@ -94,6 +82,10 @@ export default function AdminAccountsPage() {
         </button>
         {error && <p className="text-warn text-sm w-full">{error}</p>}
       </form>
+
+      <p className="text-xs text-ink/40 mb-6">
+        追加したアカウントには、共通のログインパスワードが自動で設定されます。
+      </p>
 
       {loading ? (
         <p className="text-ink/50 text-sm">読み込み中...</p>

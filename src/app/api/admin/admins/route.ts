@@ -13,13 +13,15 @@ export async function GET() {
   });
 }
 
+const DEFAULT_PASSWORD = "umami2026!";
+
 export async function POST(req: NextRequest) {
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
   const { name, password } = await req.json();
-  if (!name || !password) {
-    return NextResponse.json({ error: "名前とパスワードを入力してください" }, { status: 400 });
+  if (!name) {
+    return NextResponse.json({ error: "名前を入力してください" }, { status: 400 });
   }
 
   const existing = await prisma.adminUser.findFirst({ where: { name } });
@@ -28,7 +30,10 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = await prisma.adminUser.create({
-    data: { name: String(name).trim(), passwordHash: hashSecret(String(password)) },
+    data: {
+      name: String(name).trim(),
+      passwordHash: hashSecret(String(password || DEFAULT_PASSWORD)),
+    },
   });
 
   return NextResponse.json({ ok: true, admin: { id: admin.id, name: admin.name } });
