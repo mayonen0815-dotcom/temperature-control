@@ -19,16 +19,17 @@ model Store {
 }
 
 model Employee {
-  id         String    @id @default(cuid())
-  storeId    String
-  store      Store     @relation(fields: [storeId], references: [id])
-  name       String
-  address    String?
-  hireDate   DateTime?
-  resignDate DateTime?
-  note       String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  id             String    @id @default(cuid())
+  storeId        String
+  store          Store     @relation(fields: [storeId], references: [id])
+  name           String
+  address        String?
+  employmentType String?
+  hireDate       DateTime?
+  resignDate     DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   documents EmployeeDocument[]
 

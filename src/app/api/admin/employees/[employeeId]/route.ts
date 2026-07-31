@@ -9,10 +9,11 @@ export async function PATCH(
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { name, address, hireDate, resignDate, note } = await req.json();
+  const { name, address, employmentType, hireDate, resignDate, note } = await req.json();
   const data: any = {};
   if (name !== undefined) data.name = name;
   if (address !== undefined) data.address = address || null;
+  if (employmentType !== undefined) data.employmentType = employmentType || null;
   if (hireDate !== undefined) data.hireDate = hireDate ? new Date(hireDate) : null;
   if (resignDate !== undefined) data.resignDate = resignDate ? new Date(resignDate) : null;
   if (note !== undefined) data.note = note || null;

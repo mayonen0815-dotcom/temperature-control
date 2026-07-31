@@ -24,7 +24,7 @@ export async function POST(
   const session = await getAdminSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { name, address, hireDate, resignDate, note } = await req.json();
+  const { name, address, employmentType, hireDate, resignDate, note } = await req.json();
   if (!name) {
     return NextResponse.json({ error: "氏名を入力してください" }, { status: 400 });
   }
@@ -34,6 +34,7 @@ export async function POST(
       storeId: params.storeId,
       name: String(name).trim(),
       address: address ? String(address).trim() : null,
+      employmentType: employmentType ? String(employmentType).trim() : null,
       hireDate: hireDate ? new Date(hireDate) : null,
       resignDate: resignDate ? new Date(resignDate) : null,
       note: note ? String(note).trim() : null,

@@ -4,16 +4,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 
+const EMPLOYMENT_TYPES = ["正社員", "契約社員", "パート", "アルバイト", "業務委託", "その他"];
+
 type Employee = {
   id: string;
   name: string;
   address: string | null;
+  employmentType: string | null;
   hireDate: string | null;
   resignDate: string | null;
-  hireDocUrl: string | null;
-  hireDocName: string | null;
-  resignDocUrl: string | null;
-  resignDocName: string | null;
   note: string | null;
 };
 
@@ -27,13 +26,13 @@ export default function StoreEmployeesPage() {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
+  const [employmentType, setEmploymentType] = useState(EMPLOYMENT_TYPES[0]);
   const [hireDate, setHireDate] = useState("");
   const [resignDate, setResignDate] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [uploadingDoc, setUploadingDoc] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -51,6 +50,7 @@ export default function StoreEmployeesPage() {
     setEditingId(null);
     setName("");
     setAddress("");
+    setEmploymentType(EMPLOYMENT_TYPES[0]);
     setHireDate("");
     setResignDate("");
     setNote("");
@@ -60,6 +60,7 @@ export default function StoreEmployeesPage() {
     setEditingId(emp.id);
     setName(emp.name);
     setAddress(emp.address ?? "");
+    setEmploymentType(emp.employmentType ?? EMPLOYMENT_TYPES[0]);
     setHireDate(toDateInput(emp.hireDate));
     setResignDate(toDateInput(emp.resignDate));
     setNote(emp.note ?? "");
@@ -70,7 +71,14 @@ export default function StoreEmployeesPage() {
     setError("");
     setSubmitting(true);
     try {
-      const body = { name, address, hireDate: hireDate || null, resignDate: resignDate || null, note };
+      const body = {
+        name,
+        address,
+        employmentType,
+        hireDate: hireDate || null,
+        resignDate: resignDate || null,
+        note,
+      };
       const res = editingId
         ? await fetch(`/api/admin/employees/${editingId}`, {
             method: "PATCH",
@@ -99,22 +107,6 @@ export default function StoreEmployeesPage() {
     await fetch(`/api/admin/employees/${id}`, { method: "DELETE" });
     if (editingId === id) resetForm();
     await load();
-  }
-
-  async function uploadDocument(employeeId: string, kind: "hire" | "resign", file: File) {
-    setUploadingDoc(`${employeeId}-${kind}`);
-    try {
-      const fd = new FormData();
-      fd.append("kind", kind);
-      fd.append("file", file);
-      await fetch(`/api/admin/employees/${employeeId}/documents`, {
-        method: "POST",
-        body: fd,
-      });
-      await load();
-    } finally {
-      setUploadingDoc(null);
-    }
   }
 
   return (
@@ -149,6 +141,20 @@ export default function StoreEmployeesPage() {
               onChange={(e) => setAddress(e.target.value)}
               placeholder="例：大阪府大阪市〇〇1-2-3"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-ink/60 mb-1">雇用形態</label>
+            <select
+              className="w-full rounded-card border border-ink/15 px-3 py-2"
+              value={employmentType}
+              onChange={(e) => setEmploymentType(e.target.value)}
+            >
+              {EMPLOYMENT_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-ink/60 mb-1">入社日</label>
@@ -209,11 +215,10 @@ export default function StoreEmployeesPage() {
               <tr className="border-b border-ink/10 text-left text-ink/50">
                 <th className="px-4 py-3">氏名</th>
                 <th className="px-4 py-3">住所</th>
+                <th className="px-4 py-3">雇用形態</th>
                 <th className="px-4 py-3">入社日</th>
                 <th className="px-4 py-3">退社日</th>
                 <th className="px-4 py-3">状態</th>
-                <th className="px-4 py-3">入社書類</th>
-                <th className="px-4 py-3">退社書類</th>
                 <th className="px-4 py-3"></th>
               </tr>
             </thead>
@@ -222,6 +227,7 @@ export default function StoreEmployeesPage() {
                 <tr key={emp.id} className="border-b border-ink/5">
                   <td className="px-4 py-3 font-semibold text-ink">{emp.name}</td>
                   <td className="px-4 py-3 text-ink/70">{emp.address || "-"}</td>
+                  <td className="px-4 py-3 text-ink/70">{emp.employmentType || "-"}</td>
                   <td className="px-4 py-3 text-ink/70">{toDateInput(emp.hireDate) || "-"}</td>
                   <td className="px-4 py-3 text-ink/70">{toDateInput(emp.resignDate) || "-"}</td>
                   <td className="px-4 py-3">
@@ -230,48 +236,6 @@ export default function StoreEmployeesPage() {
                     ) : (
                       <span className="text-ok">在籍中</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {emp.hireDocUrl && (
-                      <a
-                        href={emp.hireDocUrl}
-                        target="_blank"
-                        className="text-moss underline text-xs block mb-1"
-                      >
-                        {emp.hireDocUrl.toLowerCase().endsWith(".pdf") ? "📄" : "🖼️"} 表示
-                      </a>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      disabled={uploadingDoc === `${emp.id}-hire`}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadDocument(emp.id, "hire", f);
-                      }}
-                      className="text-xs w-28"
-                    />
-                  </td>
-                  <td className="px-4 py-3">
-                    {emp.resignDocUrl && (
-                      <a
-                        href={emp.resignDocUrl}
-                        target="_blank"
-                        className="text-moss underline text-xs block mb-1"
-                      >
-                        {emp.resignDocUrl.toLowerCase().endsWith(".pdf") ? "📄" : "🖼️"} 表示
-                      </a>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*,application/pdf"
-                      disabled={uploadingDoc === `${emp.id}-resign`}
-                      onChange={(e) => {
-                        const f = e.target.files?.[0];
-                        if (f) uploadDocument(emp.id, "resign", f);
-                      }}
-                      className="text-xs w-28"
-                    />
                   </td>
                   <td className="px-4 py-3 text-right space-x-2">
                     <Link

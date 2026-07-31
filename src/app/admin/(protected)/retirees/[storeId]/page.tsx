@@ -8,6 +8,7 @@ type Employee = {
   id: string;
   name: string;
   address: string | null;
+  employmentType: string | null;
   hireDate: string | null;
   resignDate: string | null;
   note: string | null;
@@ -52,6 +53,7 @@ export default function StoreRetireesPage() {
               <tr className="border-b border-ink/10 text-left text-ink/50">
                 <th className="px-4 py-3">氏名</th>
                 <th className="px-4 py-3">住所</th>
+                <th className="px-4 py-3">雇用形態</th>
                 <th className="px-4 py-3">入社日</th>
                 <th className="px-4 py-3">退社日</th>
                 <th className="px-4 py-3">備考</th>
@@ -63,6 +65,7 @@ export default function StoreRetireesPage() {
                 <tr key={emp.id} className="border-b border-ink/5">
                   <td className="px-4 py-3 font-semibold text-ink">{emp.name}</td>
                   <td className="px-4 py-3 text-ink/70">{emp.address || "-"}</td>
+                  <td className="px-4 py-3 text-ink/70">{emp.employmentType || "-"}</td>
                   <td className="px-4 py-3 text-ink/70">{toDateInput(emp.hireDate) || "-"}</td>
                   <td className="px-4 py-3 text-ink/70">{toDateInput(emp.resignDate) || "-"}</td>
                   <td className="px-4 py-3 text-ink/70">{emp.note || "-"}</td>
